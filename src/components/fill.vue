@@ -1,32 +1,13 @@
 <template>
 	<div class="fill">
-		<!--<div class="date">
-
-	      <div class="month">
-	        <p><button @click="weekPre"><</button> {{ currentYear }}年{{ currentMonth }}月 <button @click="weekNext">></button></p>
-	      </div>
-
-
-	      <ul class="days">
-	        <li @click="pick(day)" v-for="(day, index) in days" :key="index">
-
-	          <span v-if="day.getMonth()+1 != currentMonth" class="other-month">周{{datareg(index+1)}} {{ day.getDate() }}</span>
-	          <span v-else>
-
-	          <span v-if="day.getFullYear() == new Date().getFullYear() && day.getMonth() == new Date().getMonth() && day.getDate() == new Date().getDate()" class="active">周{{datareg(index+1)}} {{ day.getDate() }}</span>
-	          <span v-else>周{{datareg(index+1)}} {{ day.getDate() }}</span>
-	          </span>
-	        </li>
-	      </ul>
-	  </div>-->
 		<h4>工时填报</h4>
 		<div class="fill_title">
 			<div class="fill_title_left">
-
 				<a href="javascript:;" class="iconfont iconshixiangzuojiantou-" @click="weekPre"></a>
-				<div class="time">{{ currentYear }} 年{{ currentMonth }}月<!--25日 - 12月1日--></div>
+				<div class="time">{{ currentYear }} 年{{this.days[0].getMonth()+1}}月{{this.days[0].getDate()}}日 - {{this.days[6].getMonth()+1}}月{{this.days[6].getDate()}}日</div>
 				<a href="javascript:;" class="iconfont iconshixiangyoujiantou-" @click="weekNext"></a>
 				<a href="javascript:;" class="thisTime">本周</a>
+				<el-button type="primary" size="mini" @click="add">增加</el-button>
 			</div>
 			<div class="fill_title_right">
 				<el-button type="primary" size="mini">保存</el-button>
@@ -48,7 +29,7 @@
 		<div class="calendar">
 			<ul>
 				<li>ID 标题</li>
-				<li @click="pick(day)" v-for="(day, index) in days" :key="index">
+				<li v-for="(day, index) in days" :key="index">
 		          <!--本月-->
 		          <span v-if="day.getMonth()+1 != currentMonth" class="other-month">周{{datareg(index+1)}} {{ day.getDate() }}</span>
 		          <span v-else>
@@ -61,13 +42,13 @@
 			</ul>
 			<ul v-for="(item,index) in list" :key="index">
 				<li>{{item.id}} {{item.name}}</li>
-				<li><input type="text" v-model="item.week1" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week2" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week3" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week4" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week5" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week6" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week7" @input="mytotal" /></li>
+				<li><input type="text" v-model="item.week1.val" @input="mytotal" /></li>
+				<li><input type="text" v-model="item.week2.val" @input="mytotal" /></li>
+				<li><input type="text" v-model="item.week3.val" @input="mytotal" /></li>
+				<li><input type="text" v-model="item.week4.val" @input="mytotal" /></li>
+				<li><input type="text" v-model="item.week5.val" @input="mytotal" /></li>
+				<li><input type="text" v-model="item.week6.val" @input="mytotal" /></li>
+				<li><input type="text" v-model="item.week7.val" @input="mytotal" /></li>
 				<li>{{item.total}}</li>
 			</ul>
 			<ul class="lastul">
@@ -106,40 +87,33 @@
 					value: 'val2',
 					label: '系统2'
 				}],
-				table: [{
-					id: '50',
-					name: '开发任务01',
-					total: '',
-					week1: '5',
-					week2: '3',
-					week3: '4',
-					week4: '2',
-					week5: '3',
-					week6: '1',
-					week7: '0'
-				}, {
-					id: '51',
-					name: '开发任务02',
-					total: '',
-					week1: '2',
-					week2: '3',
-					week3: '5',
-					week4: '2',
-					week5: '3',
-					week6: '1',
-					week7: '0'
-				}, {
-					id: '52',
-					name: '开发任务03',
-					total: '',
-					week1: '6',
-					week2: '3',
-					week3: '4',
-					week4: '2',
-					week5: '7',
-					week6: '1',
-					week7: '0'
-				}],
+				table: 
+				[
+				
+					{
+						id: '50',
+						name: '开发任务01',
+						total: '',
+						week1: {bid:'1574640000000',val:'5'},
+						week2: {bid:'1574726400000',val:'3'},
+						week3: {bid:'1574812800000',val:'4'},
+						week4: {bid:'1574899200000',val:'2'},
+						week5: {bid:'1574985600000',val:'5'},
+						week6: {bid:'1575072000000',val:'6'},
+						week7: {bid:'1575158400000',val:'1'}
+					}, {
+						id: '51',
+						name: '开发任务02',
+						total: '',
+						week1: {bid:'1574640000000',val:'21'},
+						week2: {bid:'1574726400000',val:'34'},
+						week3: {bid:'1574812800000',val:'2'},
+						week4: {bid:'1574899200000',val:'9'},
+						week5: {bid:'1574985600000',val:'7'},
+						week6: {bid:'1575072000000',val:'4'},
+						week7: {bid:'1575158400000',val:'4'}
+					}
+				],
 				list: []
 			}
 		},
@@ -149,6 +123,23 @@
 			this.initData(null);
 		},
 		methods: {
+			add(){
+				let newId = parseFloat(this.list[this.list.length-1]["id"]) + 1;
+				let obj = {
+					id: newId,
+					name: '',
+					total: '',
+					week1: {bid:'',val:''},
+					week2: {bid:'',val:''},
+					week3: {bid:'',val:''},
+					week4: {bid:'',val:''},
+					week5: {bid:'',val:''},
+					week6: {bid:'',val:''},
+					week7: {bid:'',val:''}
+				};
+				this.list.push(obj);
+				obj = null;
+			},
 			datareg(str){
 				str = str.toString();
 				let ary = ["零","一","二","三","四","五","六","日","八","九"];
@@ -164,17 +155,18 @@
 			},
 			mytotal() {
 				let total = 0;
-
-				this.list.forEach(item => {
-					let ary = [];
-					for(let i in item) {
-						let cur = item[i];
-						if(isNaN(parseFloat(cur))) cur = 0;
-						ary.push(parseFloat(cur));
-					}
-					ary = ary.slice(3);
-					item.total = eval(ary.join('+'))
-				})
+				
+				this.list.forEach(item=>{
+				let {week1,week2,week3,week4,week5,week6,week7} = item;
+				if(isNaN(parseFloat(week1.val))) week1.val = 0;
+				if(isNaN(parseFloat(week2.val))) week2.val = 0;
+				if(isNaN(parseFloat(week3.val))) week3.val = 0;
+				if(isNaN(parseFloat(week4.val))) week4.val = 0;
+				if(isNaN(parseFloat(week5.val))) week5.val = 0;
+				if(isNaN(parseFloat(week6.val))) week6.val = 0;
+				if(isNaN(parseFloat(week7.val))) week7.val = 0;
+				item.total = parseFloat(week1.val)+parseFloat(week2.val)+parseFloat(week3.val)+parseFloat(week4.val)+parseFloat(week5.val)+parseFloat(week6.val)+parseFloat(week7.val);
+			})
 
 			},
 			input: lds.debounce(function() {
@@ -187,67 +179,77 @@
 				this.list = this.list.filter(item => item["name"].indexOf(keyword) >= 0);
 			}, 300),
 			formatDate (year, month, day) {
-		        const y = year
-		        let m = month
-		        if (m < 10) m = `0${m}`
-		        let d = day
-		        if (d < 10) d = `0${d}`
-		        return `${y}-${m}-${d}`
-		      },
+		        let y = year;
+		        let m = month;
+		        if (m < 10) m = `0${m}`;
+		        let d = day;
+		        if (d < 10) d = `0${d}`;
+		        return `${y}-${m}-${d}`;
+		    },
 		
-		      initData (cur) {
-		        let date = ''
+		    initData (cur) {
+		        let date = '';
 		        if (cur) {
-		          date = new Date(cur)
+		          date = new Date(cur);
 		        } else {
-		          date = new Date()
+		          date = new Date();
 		        }
-		        this.currentDay = date.getDate()          // 今日日期 几号
-		        this.currentYear = date.getFullYear()       // 当前年份
-		        this.currentMonth = date.getMonth() + 1    // 当前月份
-		        this.currentWeek = date.getDay() // 1...6,0   // 星期几
+		        this.currentDay = date.getDate();          // 今日日期 几号
+		        this.currentYear = date.getFullYear();       // 当前年份
+		        this.currentMonth = date.getMonth() + 1;    // 当前月份
+		        this.currentWeek = date.getDay(); // 1...6,0   // 星期几
 		        if (this.currentWeek === 0) {
-		          this.currentWeek = 7
+		          this.currentWeek = 7;
 		        }
-		        const str = this.formatDate(this.currentYear, this.currentMonth, this.currentDay)// 今日日期 年-月-日
-		        this.days.length = 0
+		        let str = this.formatDate(this.currentYear, this.currentMonth, this.currentDay);// 今日日期 年-月-日
+		        this.days.length = 0;
 		        // 今天是周日，放在第一行第7个位置，前面6个 这里默认显示一周，如果需要显示一个月，则第二个循环为 i<= 35- this.currentWeek
-		        /* eslint-disabled */
 		        for (let i = this.currentWeek - 1; i >= 0; i -= 1) {
-		          const d = new Date(str)
-		          d.setDate(d.getDate() - i)
-		            // console.log(y:" + d.getDate())
-		          this.days.push(d)
+		          let d = new Date(str);
+		          d.setDate(d.getDate() - i);
+		          this.days.push(d);
 		        }
 		        for (let i = 1; i <= 7 - this.currentWeek; i += 1) {
-		          const d = new Date(str)
-		          d.setDate(d.getDate() + i)
-		          this.days.push(d)
+		          let d = new Date(str);
+		          d.setDate(d.getDate() + i);
+		          this.days.push(d);
 		        }
 		      },
-		
 		      //  上个星期
 		      weekPre () {
-		        const d = this.days[0];    // 如果当期日期是7号或者小于7号
+		        let d = this.days[0];   // 如果当期日期是7号或者小于7号
 		        d.setDate(d.getDate() - 7);
 		        this.initData(d);
 		      },
-		
 		      //  下个星期
 		      weekNext () {
-		        const d = this.days[6];    // 如果当期日期是7号或者小于7号
+		        let d = this.days[6];    // 如果当期日期是7号或者小于7号
 		        d.setDate(d.getDate() + 7);
 		        this.initData(d);
 		      },
-		      pick (date) {
-		        alert(this.formatDate(date.getFullYear(), date.getMonth() + 1, date.getDate()))
-		      },
+		      
 		},
+		
 		computed: { //计算属性
+//			dweek1:{
+//				get(){
+//					let tempVal = null;
+//					tempVal = this.table.filter(item=>parseFloat(item.id) === 50)[0];
+//					
+//					//console.log(tempVal.week1.val)
+//					return tempVal.week1.val;
+//				},
+//				set(value){
+//					let tempVal = null;
+//					tempVal = this.table.filter(item=>parseFloat(item.id) === 50)[0];
+//					tempVal.week1.val = value;
+//				}
+//					
+//			},
 			sumweek1() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week1;
+					let cur = item.week1.val;
 					if(isNaN(parseFloat(cur))) cur = 0;
 					total += parseFloat(cur)
 				})
@@ -256,7 +258,7 @@
 			sumweek2() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week2;
+					let cur = item.week2.val;
 					if(isNaN(parseFloat(cur))) cur = 0;
 					total += parseFloat(cur)
 				})
@@ -265,7 +267,7 @@
 			sumweek3() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week3;
+					let cur = item.week3.val;
 					if(isNaN(parseFloat(cur))) cur = 0;
 					total += parseFloat(cur)
 				})
@@ -274,7 +276,7 @@
 			sumweek4() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week4;
+					let cur = item.week4.val;
 					if(isNaN(parseFloat(cur))) cur = 0;
 					total += parseFloat(cur)
 				})
@@ -283,7 +285,7 @@
 			sumweek5() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week5;
+					let cur = item.week5.val;
 					if(isNaN(parseFloat(cur))) cur = 0;
 					total += parseFloat(cur)
 				})
@@ -292,7 +294,7 @@
 			sumweek6() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week6;
+					let cur = item.week6.val;
 					if(isNaN(parseFloat(cur))) cur = 0;
 					total += parseFloat(cur)
 				})
@@ -301,7 +303,7 @@
 			sumweek7() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week7;
+					let cur = item.week7.val;
 					if(isNaN(parseFloat(cur))) cur = 0;
 					total += parseFloat(cur)
 				})
@@ -371,10 +373,6 @@
 			text-align: right;
 			width: 120px;
 			height: 25px;
-			/*.el-input__suffix{
-			left:0;
-			right:auto;
-		}*/
 			.el-input__icon {
 				line-height: 25px;
 			}
@@ -438,26 +436,12 @@
 
     .days {
       display: flex;
-
       li {
         flex: 1;
         font-size: px2rem(30);
         text-align: center;
         margin-top: px2rem(10);
         line-height:  px2rem(60);
-
-        /*.active {
-          display: inline-block;
-          width: px2rem(60);
-          height: px2rem(60);
-          color: #fff;
-          border-radius: 50%;
-          background-color: #fa6854;
-        }*/
-
-        /*.other-month {
-          color: #e4393c;
-        }*/
       }
     }
   }
