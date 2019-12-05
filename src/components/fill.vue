@@ -43,14 +43,14 @@
 			<!--input事件，只要数值改变就会触发执行函数，传入当前循环的这一项（对象）-->
 			<ul v-for="(item,index) in list" :key="index">
 				<li>{{item.id}} {{item.name}}</li>
-				<li><input type="text" v-model="item.week1" @input="mytotal(item)" /></li>
-				<li><input type="text" v-model="item.week2" @input="mytotal(item)" /></li>
-				<li><input type="text" v-model="item.week3" @input="mytotal(item)" /></li>
-				<li><input type="text" v-model="item.week4" @input="mytotal(item)" /></li>
-				<li><input type="text" v-model="item.week5" @input="mytotal(item)" /></li>
-				<li><input type="text" v-model="item.week6" @input="mytotal(item)" /></li>
-				<li><input type="text" v-model="item.week7" @input="mytotal(item)" /></li>
-				<li>{{parseFloat(item.week1)+parseFloat(item.week2)+parseFloat(item.week3)+parseFloat(item.week4)+parseFloat(item.week5)+parseFloat(item.week6)+parseFloat(item.week7)}}</li>
+				<li><myInput :m="item" :w="week1" @zdyclick="gai" ></myInput></li>
+				<li><myInput :m="item" :w="week2" @zdyclick="gai" ></myInput></li>
+				<li><myInput :m="item" :w="week3" @zdyclick="gai" ></myInput></li>
+				<li><myInput :m="item" :w="week4" @zdyclick="gai" ></myInput></li>
+				<li><myInput :m="item" :w="week5" @zdyclick="gai" ></myInput></li>
+				<li><myInput :m="item" :w="week6" @zdyclick="gai" ></myInput></li>
+				<li><myInput :m="item" :w="week7" @zdyclick="gai" ></myInput></li>
+				<li>{{weVal(item,week1)+weVal(item,week2)+weVal(item,week3)+weVal(item,week4)+weVal(item,week5)+weVal(item,week6)+weVal(item,week7)}}</li>
 			</ul>
 			<ul class="lastul">
 				<li>合计：</li>
@@ -68,6 +68,7 @@
 </template>
 
 <script>
+	import myInput from '../base/myInput.vue';
 	import {getTableData,updataTable} from '../api/index.js';
 	import lds from "lodash";
 	export default {
@@ -79,7 +80,7 @@
 		        currentDay: 1,    // 日期
 		        currentWeek: 1,    // 星期
 		        days: [],
-		        
+		        vv:'123',
 				search: '',
 				xitong: '',
 				options: [{
@@ -90,6 +91,13 @@
 					label: '系统2'
 				}],
 				list: [],
+				week1:'week1',
+				week2:'week2',
+				week3:'week3',
+				week4:'week4',
+				week5:'week5',
+				week6:'week6',
+				week7:'week7',
 				sum:{
 					week1:0,
 					week2:0,
@@ -110,6 +118,10 @@
 		methods: {
 			async getData(){
 				this.list = await getTableData();
+			},
+			weVal(item,week){				
+				let obj = eval("(" + item[week] + ")");
+				return parseFloat(obj.val)
 			},
 			add(){
 				let newId = parseFloat(this.list[this.list.length-1]["id"]) + 1;
@@ -138,7 +150,7 @@
 			},
 			mytotal(item) {
 				//item接收到传入的这一项，如果这一项存在就走更新数据的接口，传入这一项的id和这一项
-
+				
 				if(item){
 					//首先判断输入的是否是数字，如果不是数字函数不往下走，也不往json里存
 					if(isNaN(item.week1) || isNaN(item.week2) || isNaN(item.week3) || isNaN(item.week4) || isNaN(item.week5) || isNaN(item.week6) || isNaN(item.week7)){
@@ -152,7 +164,12 @@
 				}
 
 			},
+			
+			mytotal1(val) {
+				console.log(val);
 
+
+			},
 			//搜索的功能，清空后重新发请求拿值
 			input: lds.debounce(async function() {
 				let keyword = this.search;
@@ -220,7 +237,7 @@
 				//将传进来的字符串作为对象名去匹配值，实现遍历到所有项目的当天值累加
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item[str];
+					let cur = eval("(" + item[str] + ")").val;
 					if(isNaN(cur)) cur = 0;
 					total += parseFloat(cur)
 				})
@@ -228,17 +245,35 @@
 				this.sum[str] = total;
 				return total
 			},
+			gai(val){
+
+				//这里的任务就是拿到传入的数据去接口
+				//{bid: 50, time: "1574640000000", week: "week1", val: "155"}
+				let bid = parseFloat(val.bid);
+				let obj = {};
+				obj['time'] = val.time;
+				obj['val'] = val.val;
+				let str = JSON.stringify(obj);
+				
+				let item = {};
+				let weekNum = val.week;
+				item[weekNum] = str;
+				updataTable(bid,item);
+				//return window.location.href = '/'//不好
+			}
 		},
 		
 		computed: { //计算属性
-
+			
 			//计算右下角总合
 			sumtotal() {
 				let total = 0;
 				return total += this.sum.week1 + this.sum.week2 + this.sum.week3 + this.sum.week4 + this.sum.week5 + this.sum.week6 + this.sum.week7;
 			}
 		},
-		components: {}
+		components: {
+			myInput
+		}
 	}
 </script>
 
