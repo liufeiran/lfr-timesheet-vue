@@ -67,6 +67,7 @@
 </template>
 
 <script>
+	import {getTableData} from '../api/index.js';
 	import lds from "lodash";
 	export default {
 		name: 'fill',
@@ -87,10 +88,7 @@
 					value: 'val2',
 					label: '系统2'
 				}],
-				table: 
-				[
-				
-					{
+				table: [{
 						id: '50',
 						name: '开发任务01',
 						total: '',
@@ -112,17 +110,22 @@
 						week5: {bid:'1574985600000',val:'7'},
 						week6: {bid:'1575072000000',val:'4'},
 						week7: {bid:'1575158400000',val:'4'}
-					}
-				],
-				list: []
+				}],
+				list: [],
+				tabList:[]
 			}
 		},
 		created() {
 			this.clolist();
 			this.mytotal();
 			this.initData(null);
+			this.getData();
 		},
 		methods: {
+			async getData(){
+				this.tabList = await getTableData();
+				console.log(this.tabList)
+			},
 			add(){
 				let newId = parseFloat(this.list[this.list.length-1]["id"]) + 1;
 				let obj = {
