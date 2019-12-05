@@ -4,7 +4,7 @@
 		<div class="fill_title">
 			<div class="fill_title_left">
 				<a href="javascript:;" class="iconfont iconshixiangzuojiantou-" @click="weekPre"></a>
-				<div class="time">{{ currentYear }} 年{{this.days[0].getMonth()+1}}月{{this.days[0].getDate()}}日 - {{this.days[6].getMonth()+1}}月{{this.days[6].getDate()}}日</div>
+				<div class="time">{{ currentYear }} 年{{this.days[0].getMonth()+1}}月{{this.days[0].getDate() < 10 ? `0${this.days[0].getDate()}`:this.days[0].getDate()}}日 - {{this.days[6].getMonth()+1}}月{{this.days[6].getDate() < 10 ? `0${this.days[6].getDate()}`:this.days[6].getDate()}}日</div>
 				<a href="javascript:;" class="iconfont iconshixiangyoujiantou-" @click="weekNext"></a>
 				<a href="javascript:;" class="thisTime">本周</a>
 				<!--<el-button type="primary" size="mini" @click="add">增加</el-button>-->
@@ -31,11 +31,11 @@
 				<li>ID 标题</li>
 				<li v-for="(day, index) in days" :key="index">
 		          <!--本月-->
-		          <span v-if="day.getMonth()+1 != currentMonth" class="other-month">周{{datareg(index+1)}} {{ day.getDate() }}</span>
+		          <span v-if="day.getMonth()+1 != currentMonth" class="other-month">周{{datareg(index+1)}} {{day.getDate() < 10 ? `0${day.getDate()}` : day.getDate()}}</span>
 		          <span v-else>
 		          <!--今天-->
-		          <span v-if="day.getFullYear() == new Date().getFullYear() && day.getMonth() == new Date().getMonth() && day.getDate() == new Date().getDate()" class="active">周{{datareg(index+1)}} {{ day.getDate() }}</span>
-		          <span v-else>周{{datareg(index+1)}} {{ day.getDate() }}</span>
+		          <span v-if="day.getFullYear() == new Date().getFullYear() && day.getMonth() == new Date().getMonth() && day.getDate() == new Date().getDate()" class="active">周{{datareg(index+1)}} {{day.getDate() < 10 ? `0${day.getDate()}` : day.getDate()}}</span>
+		          <span v-else>周{{datareg(index+1)}} {{day.getDate() < 10 ? `0${day.getDate()}` : day.getDate()}}</span>
 		          </span>
 		        </li>
 				<li>week ∑</li>
@@ -43,13 +43,13 @@
 			<!--input事件，只要数值改变就会触发执行函数，传入当前循环的这一项（对象）-->
 			<ul v-for="(item,index) in list" :key="index">
 				<li>{{item.id}} {{item.name}}</li>
-				<li><myInput :meta="item" :w="week1"></myInput></li>
-				<li><myInput :meta="item" :w="week2"></myInput></li>
-				<li><myInput :meta="item" :w="week3"></myInput></li>
-				<li><myInput :meta="item" :w="week4"></myInput></li>
-				<li><myInput :meta="item" :w="week5"></myInput></li>
-				<li><myInput :meta="item" :w="week6"></myInput></li>
-				<li><myInput :meta="item" :w="week7"></myInput></li>
+				<li><myInput :meta="item" :w="dayNum[0]"></myInput></li>
+				<li><myInput :meta="item" :w="dayNum[1]"></myInput></li>
+				<li><myInput :meta="item" :w="dayNum[2]"></myInput></li>
+				<li><myInput :meta="item" :w="dayNum[3]"></myInput></li>
+				<li><myInput :meta="item" :w="dayNum[4]"></myInput></li>
+				<li><myInput :meta="item" :w="dayNum[5]"></myInput></li>
+				<li><myInput :meta="item" :w="dayNum[6]"></myInput></li>
 				<li>{{weVal(item,week1)+weVal(item,week2)+weVal(item,week3)+weVal(item,week4)+weVal(item,week5)+weVal(item,week6)+weVal(item,week7)}}</li>
 			</ul>
 			<ul class="lastul">
@@ -79,7 +79,8 @@
 		        currentMonth: 1,  // 月份
 		        currentDay: 1,    // 日期
 		        currentWeek: 1,    // 星期
-		        days: [],
+		        days: [],//标准时间格式
+		        dayNum:[],//年-月-日格式
 		        vv:'123',
 				search: '',
 				xitong: '',
@@ -166,6 +167,8 @@
 			formatDate (year, month, day) {
 		        let y = year;
 		        let m = month;
+		        //不足两位的时间前面补零，但是补零后的时间差与不补零的时间差是不一样的！！！
+		        //time.getTime('2019-12-4')和time.getTime('2019-12-04')结果不一样！！！
 		        if (m < 10) m = `0${m}`;
 		        let d = day;
 		        if (d < 10) d = `0${d}`;
@@ -192,13 +195,31 @@
 		        for (let i = this.currentWeek - 1; i >= 0; i -= 1) {
 		          let d = new Date(str);
 		          d.setDate(d.getDate() - i);
+		          
 		          this.days.push(d);
 		        }
 		        for (let i = 1; i <= 7 - this.currentWeek; i += 1) {
 		          let d = new Date(str);
 		          d.setDate(d.getDate() + i);
 		          this.days.push(d);
+		          //得到了每天的标准格式
 		        }
+		        
+		       	//每次遍历之前清空数组
+		        this.dayNum.length = 0;
+		        this.days.forEach(item=>{
+		        	let time = new Date(item);
+		        	let y = time.getFullYear();
+		        	let m = time.getMonth()+1;
+		        	let d = time.getDate();
+		        	//得到了每天的日期格式
+		        	this.dayNum.push(this.formatDate(y,m,d))
+		        	//得到了每天的时间戳
+		        	//push(item.getTime());
+		        });
+		        console.log(this.dayNum)
+
+		        
 		      },
 		      //  上个星期
 		      weekPre () {
