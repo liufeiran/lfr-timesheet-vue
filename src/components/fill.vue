@@ -7,7 +7,7 @@
 				<div class="time">{{ currentYear }} 年{{this.days[0].getMonth()+1}}月{{this.days[0].getDate()}}日 - {{this.days[6].getMonth()+1}}月{{this.days[6].getDate()}}日</div>
 				<a href="javascript:;" class="iconfont iconshixiangyoujiantou-" @click="weekNext"></a>
 				<a href="javascript:;" class="thisTime">本周</a>
-				<el-button type="primary" size="mini" @click="add">增加</el-button>
+				<!--<el-button type="primary" size="mini" @click="add">增加</el-button>-->
 			</div>
 			<div class="fill_title_right">
 				<el-button type="primary" size="mini">保存</el-button>
@@ -43,13 +43,13 @@
 			<!--input事件，只要数值改变就会触发执行函数，传入当前循环的这一项（对象）-->
 			<ul v-for="(item,index) in list" :key="index">
 				<li>{{item.id}} {{item.name}}</li>
-				<li><myInput :m="item" :w="week1" @zdyclick="gai" ></myInput></li>
-				<li><myInput :m="item" :w="week2" @zdyclick="gai" ></myInput></li>
-				<li><myInput :m="item" :w="week3" @zdyclick="gai" ></myInput></li>
-				<li><myInput :m="item" :w="week4" @zdyclick="gai" ></myInput></li>
-				<li><myInput :m="item" :w="week5" @zdyclick="gai" ></myInput></li>
-				<li><myInput :m="item" :w="week6" @zdyclick="gai" ></myInput></li>
-				<li><myInput :m="item" :w="week7" @zdyclick="gai" ></myInput></li>
+				<li><myInput :meta="item" :w="week1"></myInput></li>
+				<li><myInput :meta="item" :w="week2"></myInput></li>
+				<li><myInput :meta="item" :w="week3"></myInput></li>
+				<li><myInput :meta="item" :w="week4"></myInput></li>
+				<li><myInput :meta="item" :w="week5"></myInput></li>
+				<li><myInput :meta="item" :w="week6"></myInput></li>
+				<li><myInput :meta="item" :w="week7"></myInput></li>
 				<li>{{weVal(item,week1)+weVal(item,week2)+weVal(item,week3)+weVal(item,week4)+weVal(item,week5)+weVal(item,week6)+weVal(item,week7)}}</li>
 			</ul>
 			<ul class="lastul">
@@ -69,7 +69,7 @@
 
 <script>
 	import myInput from '../base/myInput.vue';
-	import {getTableData,updataTable} from '../api/index.js';
+	import {getTableData} from '../api/index.js';
 	import lds from "lodash";
 	export default {
 		name: 'fill',
@@ -112,33 +112,34 @@
 		async created() {
 			this.initData(null);
 			await this.getData();
-			await this.mytotal();
+
 			
 		},
 		methods: {
 			async getData(){
 				this.list = await getTableData();
 			},
-			weVal(item,week){				
+			weVal(item,week){
+				//将当前循环的这一项item和周几传入，把字符串转为对象，通过obj.val取值
 				let obj = eval("(" + item[week] + ")");
 				return parseFloat(obj.val)
 			},
-			add(){
-				let newId = parseFloat(this.list[this.list.length-1]["id"]) + 1;
-				let obj = {
-					id: newId,
-					name: '',
-					week1: '',
-					week2: '',
-					week3: '',
-					week4: '',
-					week5: '',
-					week6: '',
-					week7: ''
-				};
-				this.list.push(obj);
-				obj = null;
-			},
+//			add(){
+//				let newId = parseFloat(this.list[this.list.length-1]["id"]) + 1;
+//				let obj = {
+//					id: newId,
+//					name: '',
+//					week1: '',
+//					week2: '',
+//					week3: '',
+//					week4: '',
+//					week5: '',
+//					week6: '',
+//					week7: ''
+//				};
+//				this.list.push(obj);
+//				obj = null;
+//			},
 			datareg(str){
 				//匹配数字转换成大写的周
 				str = str.toString();
@@ -148,35 +149,14 @@
 				})
 				return str
 			},
-			mytotal(item) {
-				//item接收到传入的这一项，如果这一项存在就走更新数据的接口，传入这一项的id和这一项
-				
-				if(item){
-					//首先判断输入的是否是数字，如果不是数字函数不往下走，也不往json里存
-					if(isNaN(item.week1) || isNaN(item.week2) || isNaN(item.week3) || isNaN(item.week4) || isNaN(item.week5) || isNaN(item.week6) || isNaN(item.week7)){
-						return
-					}else{
-						let bid = parseFloat(item.id);
-						updataTable(bid,item);
 
-					}
-					
-				}
-
-			},
 			
-			mytotal1(val) {
-				console.log(val);
-
-
-			},
 			//搜索的功能，清空后重新发请求拿值
 			input: lds.debounce(async function() {
 				let keyword = this.search;
 				if(keyword === '') {
 					this.list = [];
 					await this.getData();
-					await this.mytotal();
 					return
 				}
 				this.list = this.list.filter(item => item["name"].indexOf(keyword) >= 0);
@@ -245,22 +225,7 @@
 				this.sum[str] = total;
 				return total
 			},
-			gai(val){
 
-				//这里的任务就是拿到传入的数据去接口
-				//{bid: 50, time: "1574640000000", week: "week1", val: "155"}
-				let bid = parseFloat(val.bid);
-				let obj = {};
-				obj['time'] = val.time;
-				obj['val'] = val.val;
-				let str = JSON.stringify(obj);
-				
-				let item = {};
-				let weekNum = val.week;
-				item[weekNum] = str;
-				updataTable(bid,item);
-				//return window.location.href = '/'//不好
-			}
 		},
 		
 		computed: { //计算属性
