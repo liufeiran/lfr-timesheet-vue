@@ -40,15 +40,16 @@
 		        </li>
 				<li>week ∑</li>
 			</ul>
+			<!--input事件，只要数值改变就会触发执行函数，传入当前循环的这一项（对象）-->
 			<ul v-for="(item,index) in list" :key="index">
 				<li>{{item.id}} {{item.name}}</li>
-				<li><input type="text" v-model="item.week1.val" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week2.val" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week3.val" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week4.val" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week5.val" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week6.val" @input="mytotal" /></li>
-				<li><input type="text" v-model="item.week7.val" @input="mytotal" /></li>
+				<li><input type="text" v-model="item.week1" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week2" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week3" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week4" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week5" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week6" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week7" @input="mytotal(item)" /></li>
 				<li>{{item.total}}</li>
 			</ul>
 			<ul class="lastul">
@@ -67,7 +68,7 @@
 </template>
 
 <script>
-	import {getTableData} from '../api/index.js';
+	import {getTableData,updataTable} from '../api/index.js';
 	import lds from "lodash";
 	export default {
 		name: 'fill',
@@ -88,43 +89,19 @@
 					value: 'val2',
 					label: '系统2'
 				}],
-				table: [{
-						id: '50',
-						name: '开发任务01',
-						total: '',
-						week1: {bid:'1574640000000',val:'5'},
-						week2: {bid:'1574726400000',val:'3'},
-						week3: {bid:'1574812800000',val:'4'},
-						week4: {bid:'1574899200000',val:'2'},
-						week5: {bid:'1574985600000',val:'5'},
-						week6: {bid:'1575072000000',val:'6'},
-						week7: {bid:'1575158400000',val:'1'}
-					}, {
-						id: '51',
-						name: '开发任务02',
-						total: '',
-						week1: {bid:'1574640000000',val:'21'},
-						week2: {bid:'1574726400000',val:'34'},
-						week3: {bid:'1574812800000',val:'2'},
-						week4: {bid:'1574899200000',val:'9'},
-						week5: {bid:'1574985600000',val:'7'},
-						week6: {bid:'1575072000000',val:'4'},
-						week7: {bid:'1575158400000',val:'4'}
-				}],
 				list: [],
-				tabList:[]
 			}
 		},
-		created() {
-			this.clolist();
-			this.mytotal();
+		async created() {
 			this.initData(null);
-			this.getData();
+			await this.getData();
+			//this.clolist();
+			await this.mytotal();
+			
 		},
 		methods: {
 			async getData(){
-				this.tabList = await getTableData();
-				console.log(this.tabList)
+				this.list = await getTableData();
 			},
 			add(){
 				let newId = parseFloat(this.list[this.list.length-1]["id"]) + 1;
@@ -132,18 +109,19 @@
 					id: newId,
 					name: '',
 					total: '',
-					week1: {bid:'',val:''},
-					week2: {bid:'',val:''},
-					week3: {bid:'',val:''},
-					week4: {bid:'',val:''},
-					week5: {bid:'',val:''},
-					week6: {bid:'',val:''},
-					week7: {bid:'',val:''}
+					week1: '',
+					week2: '',
+					week3: '',
+					week4: '',
+					week5: '',
+					week6: '',
+					week7: ''
 				};
 				this.list.push(obj);
 				obj = null;
 			},
 			datareg(str){
+				//匹配数字转换成大写的周
 				str = str.toString();
 				let ary = ["零","一","二","三","四","五","六","日","八","九"];
 				str = str.replace(/\d/g,function(){
@@ -151,36 +129,51 @@
 				})
 				return str
 			},
-			clolist() {
-				this.table.map(item => {
-					return this.list.push(item);
-				});
-			},
-			mytotal() {
-				let total = 0;
-				
-				this.list.forEach(item=>{
-				let {week1,week2,week3,week4,week5,week6,week7} = item;
-				if(isNaN(parseFloat(week1.val))) week1.val = 0;
-				if(isNaN(parseFloat(week2.val))) week2.val = 0;
-				if(isNaN(parseFloat(week3.val))) week3.val = 0;
-				if(isNaN(parseFloat(week4.val))) week4.val = 0;
-				if(isNaN(parseFloat(week5.val))) week5.val = 0;
-				if(isNaN(parseFloat(week6.val))) week6.val = 0;
-				if(isNaN(parseFloat(week7.val))) week7.val = 0;
-				item.total = parseFloat(week1.val)+parseFloat(week2.val)+parseFloat(week3.val)+parseFloat(week4.val)+parseFloat(week5.val)+parseFloat(week6.val)+parseFloat(week7.val);
-			})
+			mytotal(item) {
+				//item接收到传入的这一项，如果这一项存在就走更新数据的接口，传入这一项的id和这一项
+
+				if(item){
+					//首先判断输入的是否是数字，如果不是数字函数不往下走，也不往json里存
+					if(isNaN(item.week1) || isNaN(item.week2) || isNaN(item.week3) || isNaN(item.week4) || isNaN(item.week5) || isNaN(item.week6) || isNaN(item.week7)){
+						return
+					}else{
+					
+						let bid = parseFloat(item.id);
+						updataTable(bid,item);
+
+					}
+					
+					//遍历list每一项，解构赋值得到每一项的7天值，
+					//如果输入的值不是数字，赋值0，累加每一项的7天值给total，
+					this.list.forEach(item=>{
+						let {week1,week2,week3,week4,week5,week6,week7} = item;
+						if(isNaN(week1)) return week1 = 0;
+						if(isNaN(week2)) return week2 = 0;
+						if(isNaN(week3)) return week3 = 0;
+						if(isNaN(week4)) return week4 = 0;
+						if(isNaN(week5)) return week5 = 0;
+						if(isNaN(week6)) return week6 = 0;
+						if(isNaN(week7)) return week7 = 0;
+						item.total = parseFloat(week1)+parseFloat(week2)+parseFloat(week3)+parseFloat(week4)+parseFloat(week5)+parseFloat(week6)+parseFloat(week7);
+					});
+					
+				}
 
 			},
-			input: lds.debounce(function() {
+			//搜索的功能，清空后重新发请求拿值
+			input: lds.debounce(async function() {
 				let keyword = this.search;
 				if(keyword === '') {
 					this.list = [];
-					this.clolist();
+					//this.clolist();
+					await this.getData();
+					await this.mytotal();
 					return
 				}
 				this.list = this.list.filter(item => item["name"].indexOf(keyword) >= 0);
 			}, 300),
+			
+			//网上找的切换日期
 			formatDate (year, month, day) {
 		        let y = year;
 		        let m = month;
@@ -189,7 +182,7 @@
 		        if (d < 10) d = `0${d}`;
 		        return `${y}-${m}-${d}`;
 		    },
-		
+			//网上找的切换日期
 		    initData (cur) {
 		        let date = '';
 		        if (cur) {
@@ -234,26 +227,12 @@
 		},
 		
 		computed: { //计算属性
-//			dweek1:{
-//				get(){
-//					let tempVal = null;
-//					tempVal = this.table.filter(item=>parseFloat(item.id) === 50)[0];
-//					
-//					//console.log(tempVal.week1.val)
-//					return tempVal.week1.val;
-//				},
-//				set(value){
-//					let tempVal = null;
-//					tempVal = this.table.filter(item=>parseFloat(item.id) === 50)[0];
-//					tempVal.week1.val = value;
-//				}
-//					
-//			},
+			//计算列的值
 			sumweek1() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week1.val;
-					if(isNaN(parseFloat(cur))) cur = 0;
+					let cur = item.week1;
+					if(isNaN(cur)) cur = 0;
 					total += parseFloat(cur)
 				})
 				return total
@@ -261,8 +240,8 @@
 			sumweek2() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week2.val;
-					if(isNaN(parseFloat(cur))) cur = 0;
+					let cur = item.week2;
+					if(isNaN(cur)) cur = 0;
 					total += parseFloat(cur)
 				})
 				return total
@@ -270,8 +249,8 @@
 			sumweek3() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week3.val;
-					if(isNaN(parseFloat(cur))) cur = 0;
+					let cur = item.week3;
+					if(isNaN(cur)) cur = 0;
 					total += parseFloat(cur)
 				})
 				return total
@@ -279,8 +258,8 @@
 			sumweek4() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week4.val;
-					if(isNaN(parseFloat(cur))) cur = 0;
+					let cur = item.week4;
+					if(isNaN(cur)) cur = 0;
 					total += parseFloat(cur)
 				})
 				return total
@@ -288,8 +267,8 @@
 			sumweek5() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week5.val;
-					if(isNaN(parseFloat(cur))) cur = 0;
+					let cur = item.week5;
+					if(isNaN(cur)) cur = 0;
 					total += parseFloat(cur)
 				})
 				return total
@@ -297,8 +276,8 @@
 			sumweek6() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week6.val;
-					if(isNaN(parseFloat(cur))) cur = 0;
+					let cur = item.week6;
+					if(isNaN(cur)) cur = 0;
 					total += parseFloat(cur)
 				})
 				return total
@@ -306,12 +285,13 @@
 			sumweek7() {
 				let total = 0;
 				this.list.forEach(item => {
-					let cur = item.week7.val;
-					if(isNaN(parseFloat(cur))) cur = 0;
+					let cur = item.week7;
+					if(isNaN(cur)) cur = 0;
 					total += parseFloat(cur)
 				})
 				return total
 			},
+			//计算右下角总合
 			sumtotal() {
 				let total = 0;
 				return total += this.sumweek1 + this.sumweek2 + this.sumweek3 + this.sumweek4 + this.sumweek5 + this.sumweek6 + this.sumweek7;
