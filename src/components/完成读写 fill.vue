@@ -1,0 +1,431 @@
+<template>
+	<div class="fill">
+		<h4>工时填报</h4>
+		<div class="fill_title">
+			<div class="fill_title_left">
+				<a href="javascript:;" class="iconfont iconshixiangzuojiantou-" @click="weekPre"></a>
+				<div class="time">{{ currentYear }} 年{{this.days[0].getMonth()+1}}月{{this.days[0].getDate()}}日 - {{this.days[6].getMonth()+1}}月{{this.days[6].getDate()}}日</div>
+				<a href="javascript:;" class="iconfont iconshixiangyoujiantou-" @click="weekNext"></a>
+				<a href="javascript:;" class="thisTime">本周</a>
+				<el-button type="primary" size="mini" @click="add">增加</el-button>
+			</div>
+			<div class="fill_title_right">
+				<el-button type="primary" size="mini">保存</el-button>
+				<el-button type="primary" size="mini">提交审批</el-button>
+			</div>
+		</div>
+		<div class="search">
+			<div class="demo-input-suffix">
+				<el-input v-model="search" placeholder="关键词过滤" prefix-icon="iconfont iconfilter" size="mini" @input="input">
+				</el-input>
+			</div>
+			<div class="xitong">
+				<el-select v-model="xitong" placeholder="系统">
+					<el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
+					</el-option>
+				</el-select>
+			</div>
+		</div>
+		<div class="calendar">
+			<ul>
+				<li>ID 标题</li>
+				<li v-for="(day, index) in days" :key="index">
+		          <!--本月-->
+		          <span v-if="day.getMonth()+1 != currentMonth" class="other-month">周{{datareg(index+1)}} {{ day.getDate() }}</span>
+		          <span v-else>
+		          <!--今天-->
+		          <span v-if="day.getFullYear() == new Date().getFullYear() && day.getMonth() == new Date().getMonth() && day.getDate() == new Date().getDate()" class="active">周{{datareg(index+1)}} {{ day.getDate() }}</span>
+		          <span v-else>周{{datareg(index+1)}} {{ day.getDate() }}</span>
+		          </span>
+		        </li>
+				<li>week ∑</li>
+			</ul>
+			<!--input事件，只要数值改变就会触发执行函数，传入当前循环的这一项（对象）-->
+			<ul v-for="(item,index) in list" :key="index">
+				<li>{{item.id}} {{item.name}}</li>
+				<li><input type="text" v-model="item.week1" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week2" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week3" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week4" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week5" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week6" @input="mytotal(item)" /></li>
+				<li><input type="text" v-model="item.week7" @input="mytotal(item)" /></li>
+				<li>{{item.total}}</li>
+			</ul>
+			<ul class="lastul">
+				<li>合计：</li>
+				<li>{{sumweek1}}</li>
+				<li>{{sumweek2}}</li>
+				<li>{{sumweek3}}</li>
+				<li>{{sumweek4}}</li>
+				<li>{{sumweek5}}</li>
+				<li>{{sumweek6}}</li>
+				<li>{{sumweek7}}</li>
+				<li>{{sumtotal}}</li>
+			</ul>
+		</div>
+	</div>
+</template>
+
+<script>
+	import {getTableData,updataTable} from '../api/index.js';
+	import lds from "lodash";
+	export default {
+		name: 'fill',
+		data() {
+			return {
+				currentYear: 1970,   // 年份
+		        currentMonth: 1,  // 月份
+		        currentDay: 1,    // 日期
+		        currentWeek: 1,    // 星期
+		        days: [],
+		        
+				search: '',
+				xitong: '',
+				options: [{
+					value: 'val1',
+					label: '系统1'
+				}, {
+					value: 'val2',
+					label: '系统2'
+				}],
+				list: [],
+			}
+		},
+		async created() {
+			this.initData(null);
+			await this.getData();
+			//this.clolist();
+			await this.mytotal();
+			
+		},
+		methods: {
+			async getData(){
+				this.list = await getTableData();
+			},
+			add(){
+				let newId = parseFloat(this.list[this.list.length-1]["id"]) + 1;
+				let obj = {
+					id: newId,
+					name: '',
+					total: '',
+					week1: '',
+					week2: '',
+					week3: '',
+					week4: '',
+					week5: '',
+					week6: '',
+					week7: ''
+				};
+				this.list.push(obj);
+				obj = null;
+			},
+			datareg(str){
+				//匹配数字转换成大写的周
+				str = str.toString();
+				let ary = ["零","一","二","三","四","五","六","日","八","九"];
+				str = str.replace(/\d/g,function(){
+					return ary[arguments[0]]
+				})
+				return str
+			},
+			mytotal(item) {
+				//item接收到传入的这一项，如果这一项存在就走更新数据的接口，传入这一项的id和这一项
+
+				if(item){
+					//首先判断输入的是否是数字，如果不是数字函数不往下走，也不往json里存
+					if(isNaN(item.week1) || isNaN(item.week2) || isNaN(item.week3) || isNaN(item.week4) || isNaN(item.week5) || isNaN(item.week6) || isNaN(item.week7)){
+						return
+					}else{
+					
+						let bid = parseFloat(item.id);
+						updataTable(bid,item);
+
+					}
+					
+					//遍历list每一项，解构赋值得到每一项的7天值，
+					//如果输入的值不是数字，赋值0，累加每一项的7天值给total，
+					this.list.forEach(item=>{
+						let {week1,week2,week3,week4,week5,week6,week7} = item;
+						if(isNaN(week1)) return week1 = 0;
+						if(isNaN(week2)) return week2 = 0;
+						if(isNaN(week3)) return week3 = 0;
+						if(isNaN(week4)) return week4 = 0;
+						if(isNaN(week5)) return week5 = 0;
+						if(isNaN(week6)) return week6 = 0;
+						if(isNaN(week7)) return week7 = 0;
+						item.total = parseFloat(week1)+parseFloat(week2)+parseFloat(week3)+parseFloat(week4)+parseFloat(week5)+parseFloat(week6)+parseFloat(week7);
+					});
+					
+				}
+
+			},
+			//搜索的功能，清空后重新发请求拿值
+			input: lds.debounce(async function() {
+				let keyword = this.search;
+				if(keyword === '') {
+					this.list = [];
+					//this.clolist();
+					await this.getData();
+					await this.mytotal();
+					return
+				}
+				this.list = this.list.filter(item => item["name"].indexOf(keyword) >= 0);
+			}, 300),
+			
+			//网上找的切换日期
+			formatDate (year, month, day) {
+		        let y = year;
+		        let m = month;
+		        if (m < 10) m = `0${m}`;
+		        let d = day;
+		        if (d < 10) d = `0${d}`;
+		        return `${y}-${m}-${d}`;
+		    },
+			//网上找的切换日期
+		    initData (cur) {
+		        let date = '';
+		        if (cur) {
+		          date = new Date(cur);
+		        } else {
+		          date = new Date();
+		        }
+		        this.currentDay = date.getDate();          // 今日日期 几号
+		        this.currentYear = date.getFullYear();       // 当前年份
+		        this.currentMonth = date.getMonth() + 1;    // 当前月份
+		        this.currentWeek = date.getDay(); // 1...6,0   // 星期几
+		        if (this.currentWeek === 0) {
+		          this.currentWeek = 7;
+		        }
+		        let str = this.formatDate(this.currentYear, this.currentMonth, this.currentDay);// 今日日期 年-月-日
+		        this.days.length = 0;
+		        // 今天是周日，放在第一行第7个位置，前面6个 这里默认显示一周，如果需要显示一个月，则第二个循环为 i<= 35- this.currentWeek
+		        for (let i = this.currentWeek - 1; i >= 0; i -= 1) {
+		          let d = new Date(str);
+		          d.setDate(d.getDate() - i);
+		          this.days.push(d);
+		        }
+		        for (let i = 1; i <= 7 - this.currentWeek; i += 1) {
+		          let d = new Date(str);
+		          d.setDate(d.getDate() + i);
+		          this.days.push(d);
+		        }
+		      },
+		      //  上个星期
+		      weekPre () {
+		        let d = this.days[0];   // 如果当期日期是7号或者小于7号
+		        d.setDate(d.getDate() - 7);
+		        this.initData(d);
+		      },
+		      //  下个星期
+		      weekNext () {
+		        let d = this.days[6];    // 如果当期日期是7号或者小于7号
+		        d.setDate(d.getDate() + 7);
+		        this.initData(d);
+		      },
+		      
+		},
+		
+		computed: { //计算属性
+			//计算列的值
+			sumweek1() {
+				let total = 0;
+				this.list.forEach(item => {
+					let cur = item.week1;
+					if(isNaN(cur)) cur = 0;
+					total += parseFloat(cur)
+				})
+				return total
+			},
+			sumweek2() {
+				let total = 0;
+				this.list.forEach(item => {
+					let cur = item.week2;
+					if(isNaN(cur)) cur = 0;
+					total += parseFloat(cur)
+				})
+				return total
+			},
+			sumweek3() {
+				let total = 0;
+				this.list.forEach(item => {
+					let cur = item.week3;
+					if(isNaN(cur)) cur = 0;
+					total += parseFloat(cur)
+				})
+				return total
+			},
+			sumweek4() {
+				let total = 0;
+				this.list.forEach(item => {
+					let cur = item.week4;
+					if(isNaN(cur)) cur = 0;
+					total += parseFloat(cur)
+				})
+				return total
+			},
+			sumweek5() {
+				let total = 0;
+				this.list.forEach(item => {
+					let cur = item.week5;
+					if(isNaN(cur)) cur = 0;
+					total += parseFloat(cur)
+				})
+				return total
+			},
+			sumweek6() {
+				let total = 0;
+				this.list.forEach(item => {
+					let cur = item.week6;
+					if(isNaN(cur)) cur = 0;
+					total += parseFloat(cur)
+				})
+				return total
+			},
+			sumweek7() {
+				let total = 0;
+				this.list.forEach(item => {
+					let cur = item.week7;
+					if(isNaN(cur)) cur = 0;
+					total += parseFloat(cur)
+				})
+				return total
+			},
+			//计算右下角总合
+			sumtotal() {
+				let total = 0;
+				return total += this.sumweek1 + this.sumweek2 + this.sumweek3 + this.sumweek4 + this.sumweek5 + this.sumweek6 + this.sumweek7;
+			}
+		},
+		components: {}
+	}
+</script>
+
+<style lang="less">
+	.fill {
+		width: 80%;
+		margin: 20px auto;
+	}
+	.fill_title {
+		border-bottom: 1px solid #ededed;
+		width: 100%;
+		display: flex;
+		padding-bottom: 5px;
+		.fill_title_left {
+			line-height: 30px;
+			display: flex;
+			text-align: left;
+			.thisTime {
+				margin-left: 20px;
+			}
+			.iconfont {
+				font-size: 18px;
+			}
+			button {
+				width: 100px;
+				height: 30px;
+				margin-left: 20px;
+			}
+		}
+		.fill_title_right {
+			flex: 1;
+			text-align: right;
+			button {
+				width: 100px;
+				height: 30px;
+			}
+		}
+	}
+	.search {
+		box-sizing: border-box;
+		width: 100%;
+		padding: 5px 10px;
+		background-color: #ededed;
+		margin-top: 5px;
+		display: flex;
+		.demo-input-suffix {
+			width: 300px;
+			height: 25px;
+			input.el-input__inner {
+				background: none;
+				border: none;
+			}
+		}
+		.xitong {
+			flex: 1;
+			text-align: right;
+			width: 120px;
+			height: 25px;
+			.el-input__icon {
+				line-height: 25px;
+			}
+			.el-input__inner {
+				width: 120px;
+				height: 25px;
+				line-height: 25px;
+				padding-left: 30px;
+				background: none;
+				border: none;
+			}
+		}
+	}
+	.calendar {
+		ul {
+			display: flex;
+			li {
+				display: flex;
+				line-height: 30px;
+				flex: 1;
+				justify-content: space-around;
+				align-items: center;
+				border: 1px solid #dedede;
+				input {
+					width: 100%;
+					border: none;
+					text-align: center;
+				}
+			}
+			li:first-child {
+				flex: 2;
+			}
+			li:last-child {
+				background-color: #ededed;
+			}
+		}
+		.lastul {
+			background-color: #ededed;
+		}
+	}
+	.date {
+    height: px2rem(180);
+    color: #333;
+
+    .month {
+      font-size: px2rem(24);
+      text-align: center;
+      margin-top: px2rem(20);
+    }
+
+    .weekdays {
+      display: flex;
+      font-size: px2rem(28);
+      margin-top: px2rem(20);
+
+      li {
+        flex: 1;
+        text-align: center;
+      }
+    }
+
+    .days {
+      display: flex;
+      li {
+        flex: 1;
+        font-size: px2rem(30);
+        text-align: center;
+        margin-top: px2rem(10);
+        line-height:  px2rem(60);
+      }
+    }
+  }
+</style>
