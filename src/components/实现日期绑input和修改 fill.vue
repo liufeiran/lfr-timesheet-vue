@@ -120,7 +120,7 @@
 			async getData(){
 				//let time = '2019-12-06'
 				this.list.length=0;
-				this.list = await getTableData(this.dayNum);//获取数据是将日期数组发过去
+				this.list = await getTableData(this.dayNum);
 			},
 			weVal(item,week){
 				//将当前循环的这一项item和周几传入，把字符串转为对象，通过obj.val取值
@@ -219,7 +219,7 @@
 		        	//得到了每天的时间戳
 		        	//push(item.getTime());
 		        });
-		        //console.log(this.dayNum)
+		        console.log(this.dayNum)
 
 		        
 		      },

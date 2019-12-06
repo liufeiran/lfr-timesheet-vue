@@ -1,4 +1,10 @@
 # lfr-timesheet-vue
+##启服务：mock/express-server.js   右键运行
+##跑项目：根目录命令窗口DOS，npm run dev
+##浏览器：http://localhost:8080/#/fill
+
+
+
 
 > A Vue.js project
 

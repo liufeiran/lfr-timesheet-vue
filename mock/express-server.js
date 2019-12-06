@@ -42,18 +42,70 @@ app.use(async (req,res,next)=>{
 //获取所有数据接口
 app.get('/getTableData',(req,res)=>{
 	let result = [];
-	let all = req.tableData;
-	let list = req.query.data;
-	let first = list[0];
-	let last = list[list.length-1];
-	if (all && first && last) {
+	let all = req.tableData;//获取所有json
+	let list = req.query.data;//得到传入的当前周日期数组
+	let first = list[0];//当前周一日期
+	//let last = list[list.length-1];//周日日期
+	
+	//先判断传进来的周一日期是否在json里存在，如果不存在就整体新建，那我要知道当前任务的数量，才能确定要新建几组数据，所以每条数据还要有个bid来归类，辨别哪几个任务是同一周的
+	
+	//先判断json中是否有该日期的数据，有的话就不用造了，直接读取出来
+//	all.some(item=>{
+//		item['week1']['time']==fir
+//	})
+	
+	//准备造空数据，先数组去重，为了每项任务保留一条，要每项任务都造空数据
+
+	function aryDup(ary){
+		for(let i=0;i<ary.length-1;i++){
+			let cur = ary[i]['nid'];
+			for(let j=i+1;j<ary.length;j++){
+				if(cur==ary[j]['nid']){
+					ary.splice(j,1);
+					j--;
+				}
+			}
+		}
+		return ary
+	}
+	
+	
+	//如果数据和当前周一日期都存在
+	if (all && first) {
+		//遍历数据
 		all.forEach(item=>{
+			//拿到所有的周一日期
 			let fTime = eval("("+item['week1']+")")['time'];
-			let lTime = eval("("+item['week7']+")")['time'];
-			if(fTime==first && lTime==last){
-				result.push(item)
+			//console.log(fTime);
+			if(fTime==first){
+				//将匹配当前周一的数据放入数组，返回给前端
+				result.push(item);
 			}
 		})
+		//如果没有筛选到数据，就造空数据
+		if(result.length===0){
+			let nameList = req.tableData.concat();//数组克隆为了不改变原数组
+			nameList = aryDup(nameList);
+			//造空数据
+			nameList = nameList.map((item,index)=>{
+				return {
+					id : all[all.length-1]['id'] + ++index,
+					name : item['name'],
+					nid : item['nid'],
+					week1 : `{"time":"${list[0]}","val":0}`,
+					week2 : `{"time":"${list[1]}","val":0}`,
+					week3 : `{"time":"${list[2]}","val":0}`,
+					week4 : `{"time":"${list[3]}","val":0}`,
+					week5 : `{"time":"${list[4]}","val":0}`,
+					week6 : `{"time":"${list[5]}","val":0}`,
+					week7 : `{"time":"${list[6]}","val":0}`,
+				}
+			})
+			all = all.concat(nameList);//把json所有的数据与新造的数据合并数组
+			writeFile('./table.json',all);//把合并后的写库
+			result = nameList;//把我造的空数据返回出去
+			console.log('新建数据')
+		}
 		
 		
         res.send({
@@ -73,6 +125,7 @@ app.put('/updataTable',(req,res)=>{
 	let id = parseInt(req.query.id);
 	//获取所有数据
 	let result = req.tableData;
+	
 	//如果id存在
 	if(id){
 		//获取传入的被修改的数据（对象），put接口传入的数据放在{data}里，所以这里要找req.body.data才能拿到传入的数据
