@@ -41,8 +41,21 @@ app.use(async (req,res,next)=>{
 
 //获取所有数据接口
 app.get('/getTableData',(req,res)=>{
-	let result = req.tableData;
-	if (result) {
+	let result = [];
+	let all = req.tableData;
+	let list = req.query.data;
+	let first = list[0];
+	let last = list[list.length-1];
+	if (all && first && last) {
+		all.forEach(item=>{
+			let fTime = eval("("+item['week1']+")")['time'];
+			let lTime = eval("("+item['week7']+")")['time'];
+			if(fTime==first && lTime==last){
+				result.push(item)
+			}
+		})
+		
+		
         res.send({
             code: 0,
             message: 'OK!',

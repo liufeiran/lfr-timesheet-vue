@@ -118,7 +118,9 @@
 		},
 		methods: {
 			async getData(){
-				this.list = await getTableData();
+				//let time = '2019-12-06'
+				this.list.length=0;
+				this.list = await getTableData(this.dayNum);
 			},
 			weVal(item,week){
 				//将当前循环的这一项item和周几传入，把字符串转为对象，通过obj.val取值
@@ -222,16 +224,18 @@
 		        
 		      },
 		      //  上个星期
-		      weekPre () {
+		      async weekPre () {
 		        let d = this.days[0];   // 如果当期日期是7号或者小于7号
 		        d.setDate(d.getDate() - 7);
 		        this.initData(d);
+		        await this.getData();
 		      },
 		      //  下个星期
-		      weekNext () {
+		      async weekNext () {
 		        let d = this.days[6];    // 如果当期日期是7号或者小于7号
 		        d.setDate(d.getDate() + 7);
 		        this.initData(d);
+		        await this.getData();
 		      },
 		      sumweek(str){
 				//传进来的分别是字符串"week1""week2"...

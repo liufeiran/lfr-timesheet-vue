@@ -1,7 +1,6 @@
 <template>
 	<div>
 		<input type="text" v-model="val" @input="changer" />
-		{{w}}
 	</div>
 </template>
 
@@ -37,7 +36,7 @@ export default{
 		datareg(str){
 				//匹配数字转换成大写的周
 				str = str.toString();
-				let ary = ["week7","week1","week2","week3","week4","week5","week6","error","error","error"];
+				let ary = ["week7","week1","week2","week3","week4","week5","week6"];
 				str = str.replace(/\d/g,function(){
 					return ary[arguments[0]]
 				})
