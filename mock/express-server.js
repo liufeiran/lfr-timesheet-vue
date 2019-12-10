@@ -90,8 +90,10 @@ app.get('/getTableData',(req,res)=>{
 			nameList = nameList.map((item,index)=>{
 				return {
 					id : all[all.length-1]['id'] + ++index,
-					name : item['name'],
 					nid : item['nid'],
+					name : item['name'],
+					showInput: false,
+					submitVal: 0,
 					week1 : `{"time":"${list[0]}","val":0}`,
 					week2 : `{"time":"${list[1]}","val":0}`,
 					week3 : `{"time":"${list[2]}","val":0}`,
@@ -104,7 +106,7 @@ app.get('/getTableData',(req,res)=>{
 			all = all.concat(nameList);//把json所有的数据与新造的数据合并数组
 			writeFile('./table.json',all);//把合并后的写库
 			result = nameList;//把我造的空数据返回出去
-			console.log('新建数据')
+			//console.log('新建数据')
 		}
 		
 		
@@ -122,7 +124,8 @@ app.get('/getTableData',(req,res)=>{
 //修改输入接口
 app.put('/updataTable',(req,res)=>{
 	//获取传进来的id
-	let id = parseInt(req.query.id);
+	//let id = parseInt(req.query.id);不用问号传参不用这样写了
+	let id = req.body.data.id;
 	//获取所有数据
 	let result = req.tableData;
 	
@@ -130,6 +133,7 @@ app.put('/updataTable',(req,res)=>{
 	if(id){
 		//获取传入的被修改的数据（对象），put接口传入的数据放在{data}里，所以这里要找req.body.data才能拿到传入的数据
 		let list = req.body.data;
+		//console.log(list)
 		//遍历所有数据，找到id匹配的哪一项，将传入的数据赋值给找到的这一项
 		result = result.map(item=>{
 			if(item.id===id){
@@ -137,7 +141,7 @@ app.put('/updataTable',(req,res)=>{
 			}
 			return item;
 		});
-
+		//console.log(result);
 		//将更新后的数据写入json，但是这样改一点就会重写一次，不好，能不能只更新json中的匹配数据呢？
 		//或者是修改前台让修改的值存在cookie/session中？点击保存再发送，但是前台存在搜索功能，搜索是filter筛选，会改变list数组，list改变会影响到计算，所以筛选不能隐藏，只能改变list数组，现在做的功能是搜索清空就重新请求数据，更改值就往json重写
 		writeFile('./table.json',result);
@@ -148,7 +152,27 @@ app.put('/updataTable',(req,res)=>{
 	return;
 });
 
-
+//提交审批
+app.put('/subTable',(req,res)=>{
+	let result = req.tableData;
+	let list = req.body.data;
+	if(list){
+		result = result.map(rItem=>{
+			let cur = rItem.id;
+			list.forEach(lItem=>{
+				if(cur==lItem.id){
+					rItem = lItem;
+				}
+			})
+			return rItem;
+		});
+		writeFile('./table.json',result);
+		res.send({code:0,message:'OK!'});
+		return;
+	}
+	res.send({code:1,message:'NO!'});
+	return;
+})
 
 
 

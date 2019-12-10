@@ -11,8 +11,15 @@ export let getTableData = (data) =>{
 	});
 }
 //修改数据接口，传入id和被修改的那一项
-export let updataTable = (id,data) =>{
-	return axios.put(`/updataTable?id=${id}`,{
+export let updataTable = (data) =>{
+//	return axios.put(`/updataTable?id=${id}`,{data});不用问号传参
+	return axios.put(`/updataTable`,{
+		data
+	});
+}
+//提交审批
+export let subTable = (data) =>{
+	return axios.put(`/subTable`,{
 		data
 	});
 }

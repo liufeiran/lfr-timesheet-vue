@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<input type="text" v-model="val" @input="changer" />
+		<el-input type="text" v-model="val" @input="changer" :disabled="meta.showInput" :class="{act:meta.submitVal}" />
 	</div>
 </template>
 
@@ -10,6 +10,7 @@ export default{
 	name:'myInput',
 	data(){
 		return{
+			//showInput:false,
 			list:{},
 			cur:{},
 			val:0,	//这个val的主要作用是v-model
@@ -53,14 +54,15 @@ export default{
 			this.list = eval("("+str+")");//将这个字符串转为对象
 			this.val = this.list.val;//把读出来的input原始值放到这里
 		},
-		changer(e){
+		changer(){
 			this.cur = this.meta;//当前要修改的这一组对象（原始）
-			this.val =  parseFloat(e.target.value);//将输入的值覆盖原始值
-			this.list.val = this.val;//改好后的当前input值，覆盖list对象中的val
-			let bid = this.meta['id'];//当前这一组的id
+			//this.val =  parseFloat(e.target.value);//将输入的值覆盖原始值，为什么这句没有也好用呢，难道是v-model?
+			//对，因为v-model双向绑定val的值自动改变了，不需要再value去赋值
+			this.list.val = parseFloat(this.val);//改好后的当前input值，覆盖list对象中的val
+			//let bid = this.meta['id'];//当前这一组的id，不需要id了
 			this.cur[this.curWeek] = JSON.stringify(this.list);//在原始对象中用周几来找到要修改的值，把list存的新值转成json字符串，替换cur中的同名的
-			//将整理好的对象和id发个接口
-			updataTable(bid,this.cur);
+			//将整理好的对象和id发给接口
+			updataTable(this.cur);
 
 		}
 	},
@@ -68,5 +70,10 @@ export default{
 }
 </script>
 
-<style>
+<style lang="less">
+.act{
+	input{
+		color:#ff0000;
+	}
+}
 </style>
