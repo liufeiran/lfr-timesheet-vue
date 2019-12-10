@@ -32,7 +32,7 @@ app.use((req,res,next)=>{
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(async (req,res,next)=>{
-	let tableData = await readFile(pathDataTable);
+	let tableData = await readFile(pathDataTable)
 	req.tableData = JSON.parse(tableData);
 	next();
 });
