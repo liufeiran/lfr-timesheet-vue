@@ -84,7 +84,6 @@
 		        currentWeek: 1,    // 星期
 		        days: [],//标准时间格式
 		        dayNum:[],//年-月-日格式
-		        vv:'123',
 				search: '',
 				xitong: '',
 				options: [{

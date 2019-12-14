@@ -44,6 +44,16 @@ app.get('/getTableData',(req,res)=>{
 	let result = [];
 	let all = req.tableData;//获取所有json
 	let list = req.query.data;//得到传入的当前周日期数组
+	
+	if(list===undefined){//如果没传数据就把所有json发送过去
+		res.send({
+            code: 0,
+            message: 'OK!',
+            data: all
+        });
+        return;
+	}
+
 	let first = list[0];//当前周一日期
 	//let last = list[list.length-1];//周日日期
 	
@@ -92,6 +102,7 @@ app.get('/getTableData',(req,res)=>{
 					id : all[all.length-1]['id'] + ++index,
 					nid : item['nid'],
 					name : item['name'],
+					cname : item['cname'],
 					showInput: false,
 					submitVal: 0,
 					week1 : `{"time":"${list[0]}","val":0}`,
