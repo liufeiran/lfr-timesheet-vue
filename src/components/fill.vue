@@ -12,8 +12,8 @@
 			<div class="fill_title_right">
 				<el-button type="primary" size="mini" @click="submitVal">提交审批</el-button>
 				<el-button type="primary" size="mini" @click="recall">撤回提交</el-button>
-				<el-button type="primary" size="mini" @click="submit">审批通过</el-button>
-				<el-button type="primary" size="mini" @click="open">审批驳回</el-button>
+				<!--<el-button type="primary" size="mini" @click="submit">审批通过</el-button>
+				<el-button type="primary" size="mini" @click="open">审批驳回</el-button>-->
 			</div>
 		</div>
 		<div class="search">
@@ -82,7 +82,7 @@
 		        currentMonth: 1,  // 月份
 		        currentDay: 1,    // 日期
 		        currentWeek: 1,    // 星期
-		        days: [],//标准时间格式
+		        days: [],//标准时间格式，当前显示的周一到周日的
 		        dayNum:[],//年-月-日格式
 				search: '',
 				xitong: '',
@@ -191,7 +191,6 @@
 		          //得到了每天的标准格式
 		        }
 		        
-		        
 		       	//每次遍历之前清空数组
 		        this.dayNum.length = 0;
 		        this.days.forEach(item=>{
@@ -251,18 +250,18 @@
 			},
 			
 			
-			submit(){
-				this.list.forEach(item=>{
-					item.showInput=true;
-				})
-				subTable(this.list)
-			},
-			open(){
-				this.list.forEach(item=>{
-					item.showInput=false;
-				})
-				subTable(this.list)
-			}
+//			submit(){
+//				this.list.forEach(item=>{
+//					item.showInput=true;
+//				})
+//				subTable(this.list)
+//			},
+//			open(){
+//				this.list.forEach(item=>{
+//					item.showInput=false;
+//				})
+//				subTable(this.list)
+//			}
 		},
 		
 		computed: { //计算属性
