@@ -1,6 +1,6 @@
 <template>
 	<div class="fill">
-		<h4>工时填报</h4>
+		<h4>{{cname}}&nbsp;&nbsp;&nbsp;&nbsp;工时填报</h4>
 		<div class="fill_title">
 			<div class="fill_title_left">
 				<a href="javascript:;" class="iconfont iconshixiangzuojiantou-" @click="weekPre"></a>
@@ -66,7 +66,7 @@
 				<li>{{sumtotal}}</li>
 			</ul>
 		</div>
-		<p><br />*已提交审核的工时为<font class="wz">红色</font></p>
+		<p><br />*已提交审批的工时为<font class="wz">红色</font></p>
 	</div>
 </template>
 
@@ -78,6 +78,7 @@
 		name: 'fill',
 		data() {
 			return {
+				cname:"张三",
 				currentYear: 1970,   // 年份
 		        currentMonth: 1,  // 月份
 		        currentDay: 1,    // 日期
@@ -120,7 +121,7 @@
 			async getData(){
 				//let time = '2019-12-06'
 				this.list.length=0;
-				this.list = await getTableData(this.dayNum);//获取数据是将日期数组发过去
+				this.list = await getTableData(this.cname,this.dayNum);//获取数据是将日期数组发过去
 			},
 			weVal(item,week){
 				//将当前循环的这一项item和周几传入，把字符串转为对象，通过obj.val取值

@@ -20,7 +20,7 @@
 				<el-row>
 					<el-col :span="24" class="bkbottom">
 						<div class="left">2019年11月18日<br />第47周 （本周）</div>
-						<div class="right"><!--span>90小时</span--></div>
+						<div class="right"><span>90小时</span></div>
 					</el-col>
 					<el-col :span="6">
 						<div class="biaotou">
@@ -39,21 +39,61 @@
 							<el-button type="primary" size="mini" @click="submit">批准当前工时</el-button>
 							<el-button type="danger" size="mini" @click="open">驳回</el-button>
 						</div>
-						<!--组件是根据人名来循环的-->
-						<div v-for="(name,index) in checkedCities" :key="index">
-							<shInput :zjcheckedCities="checkedCities" :zjdays="days" :zjtlist="tlist" :zjcurrentMonth="currentMonth" :zjname="name"></shInput>
+	<div class="box">
+		<!--这应该是一个组件-->
+		<div class="title">&nbsp;<font v-for="(c,i) in checkedCities" :key="i">{{c}}</font><span>2019年11月19日提交审批</span></div>
+							
+
+		<div class="calendar">
+			<ul>
+				<li>ID 标题</li>
+				<li v-for="(day, index) in days" :key="index">
+		          <!--本月-->
+		          <span v-if="day.getMonth()+1 != currentMonth" class="other-month">周{{datareg(index+1)}} {{day.getDate() < 10 ? `0${day.getDate()}` : day.getDate()}}</span>
+		          <span v-else>
+		          <!--今天-->
+		          <span v-if="day.getFullYear() == new Date().getFullYear() && day.getMonth() == new Date().getMonth() && day.getDate() == new Date().getDate()" class="active">周{{datareg(index+1)}} {{day.getDate() < 10 ? `0${day.getDate()}` : day.getDate()}}</span>
+		          <span v-else>周{{datareg(index+1)}} {{day.getDate() < 10 ? `0${day.getDate()}` : day.getDate()}}</span>
+		          </span>
+		        </li>
+				<li>week ∑</li>
+			</ul>
+			<!--input事件，只要数值改变就会触发执行函数，传入当前循环的这一项（对象）-->
+			<ul v-for="(item,index) in tlist" :key="index" :class="{active:item.showInput}">
+				<li>{{item.id}} {{item.name}}</li>
+				<li>{{weVal(item,week1)}}</li>
+				<li>{{weVal(item,week2)}}</li>
+				<li>{{weVal(item,week3)}}</li>
+				<li>{{weVal(item,week4)}}</li>
+				<li>{{weVal(item,week5)}}</li>
+				<li>{{weVal(item,week6)}}</li>
+				<li>{{weVal(item,week7)}}</li>
+				<li>{{weVal(item,week1)+weVal(item,week2)+weVal(item,week3)+weVal(item,week4)+weVal(item,week5)+weVal(item,week6)+weVal(item,week7)}}</li>
+			</ul>
+			<ul class="lastul">
+				<li>合计：</li>
+				<li>{{sumweek("week1")}}</li>
+				<li>{{sumweek("week2")}}</li>
+				<li>{{sumweek("week3")}}</li>
+				<li>{{sumweek("week4")}}</li>
+				<li>{{sumweek("week5")}}</li>
+				<li>{{sumweek("week6")}}</li>
+				<li>{{sumweek("week7")}}</li>
+				<li>{{sumtotal}}</li>
+			</ul>
+		</div>
 						</div>
 					</el-col>
 				</el-row>
 			</el-col>
 		</el-row>
-		<p><br />*已批准的工时为<font class="wz">绿色</font></p>
+
 	</div>
 </template>
 
 <script>
 	import {getTableData,subTable} from '../api/index.js';
-	import shInput from '../base/shInput.vue';
+	//import shInput from '../base/shInput.vue';
 	export default{
 		name:'approval',
 		data() {
@@ -105,8 +145,10 @@
 			await this.initData(null);
 			await this.getData();
 			await this.changeName();
+			//this.tlist = this.list.concat();//数组克隆
 			this.getMondy();
 			this.handleChange(this.curMondy);
+			//this.getdays();
 			//默认显示第一个
 			this.checkedCities.push(this.cName[0]);
 		},
@@ -117,7 +159,7 @@
 					return;
 				}
 				this.tlist = this.list.filter(item=>item.cname===str);
-				
+				console.log(this.tlist)
 			},
 			async getData(){
 				//let time = '2019-12-06'
@@ -147,8 +189,21 @@
 				}
 				return ary
 			},
+			weVal(item,week){
+				//将当前循环的这一项item和周几传入，把字符串转为对象，通过obj.val取值
+				let obj = eval("(" + item[week] + ")");
+				return parseFloat(obj.val)
+			},
 
-
+			datareg(str){
+				//匹配数字转换成大写的周
+				str = str.toString();
+				let ary = ["零","一","二","三","四","五","六","日","八","九"];
+				str = str.replace(/\d/g,function(){
+					return ary[arguments[0]]
+				})
+				return str
+			},
 			
 			//网上找的切换日期
 			formatDate (year, month, day) {
@@ -224,6 +279,19 @@
 //		        this.initData();
 //		        await this.getData();
 //		      },
+		      sumweek(str){
+				//传进来的分别是字符串"week1""week2"...
+				//将传进来的字符串作为对象名去匹配值，实现遍历到所有项目的当天值累加
+				let total = 0;
+				this.tlist.forEach(item => {
+					let cur = eval("(" + item[str] + ")").val;
+					if(isNaN(cur)) cur = 0;
+					total += parseFloat(cur)
+				})
+				//将该列计算出来的值存到data的sum[str]上，以供计算属性sumtotal得出总合
+				this.sum[str] = total;
+				return total
+			},
 
 			submit(){
 				this.tlist.forEach(item=>{
@@ -249,17 +317,18 @@
 				//用事件委托可以到的被点击的标签，但是不能加在el标签上
 	        	let reg = /^[\d|-]+$/;//匹配以数字或-开头结尾   1到多个
 	        	let cur = event.target.innerText;
-	        	this.tlist = [];
 	        	if(reg.test(str)){
 	        		this.tlist = this.list.filter(item=>str === eval("(" + item["week1"] + ")")["time"]);
 	        		return;
-	        		
 	        	}
 	        	if(reg.test(cur)){
 	        		this.tlist = this.list.filter(item=>cur === eval("(" + item["week1"] + ")")["time"]);
 	        		this.initData(cur);//初始化日期，更改days，将点击的周一日期传进去
 	        		return;
 	        	}
+	        	
+	        	
+	        
 	      	},
 	      	handleCheckAllChange(val) {
 	        	this.checkedCities = val ? this.cName : [];
@@ -269,17 +338,26 @@
 	        	let checkedCount = value.length;
 	        	this.checkAll = checkedCount === this.cName.length;
 	        	this.isIndeterminate = checkedCount > 0 && checkedCount < this.cName.length;
-	        	//console.log(value)
+	        	console.log(value)
 	      	}
 		},
 		computed:{
-
+			//计算右下角总合
+			sumtotal() {
+				let total = 0;
+				for(let key in this.sum){
+					if(this.sum.hasOwnProperty(key)){
+						total += this.sum[key];
+					}
+				}
+				return total;
+			},
 			curMondy(){
 				return this.dayNum[0];
 			}
 		},
 		components:{
-			shInput
+			//shInput
 		}
 	}
 </script>
@@ -287,9 +365,8 @@
 <style lang="less">
 .approval{
 	width: 80%;
-	min-height:430px;
+	height:557px;
 	margin: 20px auto;
-	.wz{color:#00bb00;}
 	.el-row{
 		height:100%;
 	}
@@ -297,11 +374,10 @@
 		padding-left: 25px;
 		.day{
 			padding-left: 25px;
-			cursor:pointer;
 		}
 	}
 	.bkleft{
-		min-height:497px;
+		height:557px;
 		border-left:3px solid #ddd;
 		.biaotou{
 			height:49px;
@@ -351,7 +427,7 @@
 		
 	}
 	.nbkleft{
-		min-height:430px;
+		height:500px;
 		border-left:3px solid #ddd;
 		.nbiaotou{
 			height:49px;
@@ -363,7 +439,46 @@
 			}
 		}
 	}
-	
-	
+	.box{
+		.title{
+			width: 100%;
+			height:40px;
+			line-height: 40px;
+			font-size:24px;
+			span{float: right; font-size: 16px;}
+		}
+	.calendar {
+		ul {
+			display: flex;
+			li {
+				display: flex;
+				line-height: 30px;
+				flex: 1;
+				justify-content: center;
+				align-items: center;
+				border: 1px solid #dedede;
+				input {
+					width: 100%;
+					border: none;
+					text-align: center;
+				}
+			}
+			li:first-child {
+				flex: 2;
+			}
+			li:last-child {
+				background-color: #ededed;
+			}
+		}
+		.lastul {
+			background-color: #ededed;
+		}
+		.active{
+			li{
+				color:#00bb00;
+			}
+		}
+	}
+	}
 }
 </style>

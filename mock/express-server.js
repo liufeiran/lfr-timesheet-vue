@@ -42,14 +42,16 @@ app.use(async (req,res,next)=>{
 //获取所有数据接口
 app.get('/getTableData',(req,res)=>{
 	let result = [];
-	let all = req.tableData;//获取所有json
+	let allData = req.tableData;//获取所有json
+	let cname = req.query.cname;//获取传入的名字
+	let all = req.tableData.filter(item=>item.cname==cname);//筛选出该名字的所有数据
 	let list = req.query.data;//得到传入的当前周日期数组
-	
+
 	if(list===undefined){//如果没传数据就把所有json发送过去
 		res.send({
             code: 0,
             message: 'OK!',
-            data: all
+            data: allData//这里将全部数据返回出去
         });
         return;
 	}
@@ -92,9 +94,12 @@ app.get('/getTableData',(req,res)=>{
 				result.push(item);
 			}
 		})
+		//我现在result得到的是所有人的这周数据，我还要根据传进来的人名再次筛选，同样下面造空数据也要给传进来的这个人造！！
+		
 		//如果没有筛选到数据，就造空数据
 		if(result.length===0){
-			let nameList = req.tableData.concat();//数组克隆为了不改变原数组
+			//这里req.tableData是所有的就不对了，应该是当前这个人的
+			let nameList = all.concat();//数组克隆为了不改变原数组
 			nameList = aryDup(nameList);
 			//造空数据
 			nameList = nameList.map((item,index)=>{
@@ -114,8 +119,8 @@ app.get('/getTableData',(req,res)=>{
 					week7 : `{"time":"${list[6]}","val":0}`,
 				}
 			})
-			all = all.concat(nameList);//把json所有的数据与新造的数据合并数组
-			writeFile('./table.json',all);//把合并后的写库
+			allData = allData.concat(nameList);//把json所有的数据与新造的数据合并数组
+			writeFile('./table.json',allData);//把合并后的写库
 			result = nameList;//把我造的空数据返回出去
 			//console.log('新建数据')
 		}
